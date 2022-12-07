@@ -5,12 +5,16 @@ import {useDebounce} from "../../hooks/debounce";
 
 const Home = () => {
   const [search, setSearch] = React.useState('');
-  const { data, isError, isLoading } = useSearchUsersQuery("dvaid");
+  const [dropdown, setDropdown] = React.useState(false);
   const debounce = useDebounce(search);
+  const { data, isError, isLoading } = useSearchUsersQuery(debounce, {
+    skip: debounce.length < 3,
+    refetchOnFocus: true
+  });
 
   useEffect(() => {
-    console.log(debounce);
-  }, [debounce]);
+    setDropdown(debounce.length > 3 && data?.length! > 0)
+  }, [debounce, data]);
 
   return (
     <div className="flex justify-center pt-10 mx-auto h-screen w-screen">
@@ -24,10 +28,19 @@ const Home = () => {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        
-        <div className="absolute top-[42px] left-0 right-0 max-h-[200px] shadow-md bg-white">
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nam, nobis!
-        </div>
+
+        { dropdown && <ul
+          className="list-none absolute top-[42px] left-0 right-0 max-h-[200px] overflow-y-scroll shadow-md bg-white">
+          {isLoading && <p className="text-center">Loading...</p>}
+          {data?.map(user => (
+            <li
+              className="py-2 px-4 hover:bg-gray-500 hover:text-white transition-colors cursor-pointer"
+              key={user.id}
+            >
+              {user.login}
+            </li>
+          ))}
+        </ul> }
       </div>
     </div>
   );
